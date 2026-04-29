@@ -5,6 +5,20 @@
       <button class="add-btn" @click="showModal = true">+ Add Customer</button>
     </div>
 
+    <div class="filters-section">
+      <h3 class="filters-title">Filters</h3>
+      <div class="filters">
+        <div class="filter-group">
+          <label>Name</label>
+          <input v-model="searchName" placeholder="Enter name..." />
+        </div>
+        <div class="filter-group">
+          <label>Phone Number</label>
+          <input v-model="searchPhone" placeholder="Enter phone number..." />
+        </div>
+      </div>
+    </div>
+
     <table class="data-table">
       <thead>
         <tr>
@@ -15,7 +29,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="customer in customers" :key="customer.id">
+        <tr v-for="customer in filteredCustomers" :key="customer.id">
           <td>{{ customer.name }}</td>
           <td>{{ customer.phone || 'N/A' }}</td>
           <td>{{ customer.orders_count }}</td>
@@ -50,13 +64,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
 const customers = ref([]);
 const showModal = ref(false);
 const editingId = ref(null);
 const form = ref({ name: '', phone: '' });
+
+const searchName = ref('');
+const searchPhone = ref('');
+
+const filteredCustomers = computed(() => {
+  return customers.value.filter(c => {
+    const matchName = !searchName.value || c.name.toLowerCase().includes(searchName.value.toLowerCase());
+    const matchPhone = !searchPhone.value || (c.phone && c.phone.toLowerCase().includes(searchPhone.value.toLowerCase()));
+
+    return matchName && matchPhone;
+  });
+});
 
 const fetchCustomers = async () => {
   const res = await axios.get('/api/customers');
@@ -96,7 +122,14 @@ onMounted(fetchCustomers);
 </script>
 
 <style scoped>
-.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.filters-section { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+.filters-title { margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: #444; }
+.filters { display: flex; gap: 1.5rem; }
+.filter-group { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; text-align: left; }
+.filter-group label { font-size: 0.9rem; font-weight: 500; color: #555; }
+.filter-group input { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color, #ddd); border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; background: #fafafa; transition: border-color 0.2s, background 0.2s; }
+.filter-group input:focus { outline: none; border-color: var(--primary-color, #4f46e5); background: white; }
 .data-table { width: 100%; background: white; border-collapse: collapse; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }

@@ -5,6 +5,16 @@
       <button class="add-btn" @click="showModal = true">+ Add Category</button>
     </div>
 
+    <div class="filters-section">
+      <h3 class="filters-title">Filters</h3>
+      <div class="filters">
+        <div class="filter-group">
+          <label>Category Name</label>
+          <input v-model="searchCategory" placeholder="Enter category name..." />
+        </div>
+      </div>
+    </div>
+
     <table class="data-table">
       <thead>
         <tr>
@@ -14,7 +24,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="cat in categories" :key="cat.id">
+        <tr v-for="cat in filteredCategories" :key="cat.id">
           <td>{{ cat.name }}</td>
           <td>{{ cat.products_count }}</td>
           <td>
@@ -44,13 +54,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
 const categories = ref([]);
 const showModal = ref(false);
 const editingId = ref(null);
 const form = ref({ name: '' });
+
+const searchCategory = ref('');
+
+const filteredCategories = computed(() => {
+  return categories.value.filter(cat => 
+    !searchCategory.value || cat.name.toLowerCase().includes(searchCategory.value.toLowerCase())
+  );
+});
 
 const fetchCategories = async () => {
   const res = await axios.get('/api/categories');
@@ -81,7 +99,7 @@ const deleteCategory = async (id) => {
 };
 
 const closeModal = () => {
-  showModal.ref = false;
+  showModal.value = false;
   editingId.value = null;
   form.value = { name: '' };
 };
@@ -94,8 +112,16 @@ onMounted(fetchCategories);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
+
+.filters-section { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+.filters-title { margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: #444; }
+.filters { display: flex; gap: 1.5rem; }
+.filter-group { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; text-align: left; max-width: 300px; }
+.filter-group label { font-size: 0.9rem; font-weight: 500; color: #555; }
+.filter-group input { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color, #ddd); border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; background: #fafafa; transition: border-color 0.2s, background 0.2s; }
+.filter-group input:focus { outline: none; border-color: var(--primary-color, #4f46e5); background: white; }
 
 .data-table {
   width: 100%;

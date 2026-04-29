@@ -5,6 +5,27 @@
       <button class="add-btn" @click="showModal = true">+ Add Product</button>
     </div>
 
+    <div class="filters-section">
+      <h3 class="filters-title">Filters</h3>
+      <div class="filters">
+        <div class="filter-group">
+          <label>Product Name</label>
+          <input v-model="searchName" placeholder="Enter product name..." />
+        </div>
+        <div class="filter-group">
+          <label>Category</label>
+          <select v-model="searchCategory">
+            <option value="">All Categories</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Barcode</label>
+          <input v-model="searchBarcode" placeholder="Enter barcode..." />
+        </div>
+      </div>
+    </div>
+
     <table class="data-table">
       <thead>
         <tr>
@@ -17,7 +38,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in products" :key="product.id">
+        <tr v-for="product in filteredProducts" :key="product.id">
           <td>{{ product.name }}</td>
           <td>{{ product.category?.name }}</td>
           <td>${{ product.price }}</td>
@@ -70,7 +91,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
 const products = ref([]);
@@ -78,6 +99,20 @@ const categories = ref([]);
 const showModal = ref(false);
 const editingId = ref(null);
 const form = ref({ name: '', category_id: null, price: 0, stock: 0, barcode: '' });
+
+const searchName = ref('');
+const searchCategory = ref('');
+const searchBarcode = ref('');
+
+const filteredProducts = computed(() => {
+  return products.value.filter(p => {
+    const matchName = !searchName.value || p.name.toLowerCase().includes(searchName.value.toLowerCase());
+    const matchCategory = searchCategory.value === '' || p.category_id == searchCategory.value;
+    const matchBarcode = !searchBarcode.value || (p.barcode && p.barcode.toLowerCase().includes(searchBarcode.value.toLowerCase()));
+    
+    return matchName && matchCategory && matchBarcode;
+  });
+});
 
 const fetchData = async () => {
   const [pRes, cRes] = await Promise.all([
@@ -121,7 +156,14 @@ onMounted(fetchData);
 </script>
 
 <style scoped>
-.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.filters-section { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+.filters-title { margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: #444; }
+.filters { display: flex; gap: 1.5rem; }
+.filter-group { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+.filter-group label { font-size: 0.9rem; font-weight: 500; color: #555; }
+.filter-group input, .filter-group select { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color, #ddd); border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; background: #fafafa; transition: border-color 0.2s, background 0.2s; }
+.filter-group input:focus, .filter-group select:focus { outline: none; border-color: var(--primary-color, #4f46e5); background: white; }
 .data-table { width: 100%; background: white; border-collapse: collapse; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }

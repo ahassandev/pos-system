@@ -53,7 +53,7 @@
     </div>
 
     <ReceiptModal
-      v-show="showReceipt"
+      v-if="showReceipt"
       :show="showReceipt"
       :order="receiptOrder"
       @close="showReceipt = false"

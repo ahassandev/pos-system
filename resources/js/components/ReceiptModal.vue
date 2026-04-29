@@ -10,6 +10,7 @@
         <div class="receipt-header">
           <h2 class="store-name">BAKERY NAME</h2>
           <p class="store-info">Shop #12, Bakery Street, Karachi</p>
+          <p class="store-info">Ph: +92 300 1234567</p>
           <div class="divider"></div>
         </div>
 
@@ -27,6 +28,7 @@
               <tr>
                 <th style="width: 50%">Item</th>
                 <th style="text-align: center">Qty</th>
+                <th style="text-align: right">Price</th>
                 <th style="text-align: right">Total</th>
               </tr>
             </thead>
@@ -35,7 +37,8 @@
                 <tr v-for="item in order.items" :key="item.id">
                   <td>{{ item.product?.name || 'Product' }}</td>
                   <td style="text-align: center">{{ item.quantity }}</td>
-                  <td style="text-align: right">{{ (item.price * item.quantity).toFixed(2) }}</td>
+                  <td style="text-align: right">{{ formatPrice(item.price) }}</td>
+                  <td style="text-align: right">{{ formatPrice(item.price * item.quantity) }}</td>
                 </tr>
               </template>
               <tr v-else>
@@ -50,9 +53,17 @@
           <div class="divider"></div>
 
           <div class="receipt-footer">
+            <div class="summary-line" v-if="order.subtotal">
+              <span>Subtotal:</span>
+              <span>${{ formatPrice(order.subtotal) }}</span>
+            </div>
+            <div class="summary-line discount" v-if="order.discount > 0">
+              <span>Discount ({{ order.discount_percentage }}%):</span>
+              <span>-${{ formatPrice(order.discount) }}</span>
+            </div>
             <div class="final-total">
               <span>GRAND TOTAL:</span>
-              <span>${{ order.total || '0.00' }}</span>
+              <span>${{ formatPrice(order.total) }}</span>
             </div>
             <div class="divider"></div>
             <p class="thank-you">Thank you for your visit!</p>
@@ -78,6 +89,11 @@ const emit = defineEmits(['close']);
 const formatDate = (dateStr) => {
   if (!dateStr) return 'N/A';
   return new Date(dateStr).toLocaleString();
+};
+
+const formatPrice = (val) => {
+  if (val == null || val === '') return '0.00';
+  return Number(val).toFixed(2);
 };
 
 const printReceipt = () => {
@@ -129,7 +145,7 @@ const printReceipt = () => {
   background: white;
   padding: 2rem;
   border-radius: 20px;
-  width: 550px;
+  width: 400px;
   max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;

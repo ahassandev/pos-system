@@ -11,7 +11,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        return response()->json(\App\Models\Order::with('customer')->latest()->get());
+        return response()->json(\App\Models\Order::with(['customer', 'items.product'])->latest()->get());
     }
 
     public function store(Request $request)
@@ -42,7 +42,7 @@ class OrderController extends Controller
 
             foreach ($request->items as $item) {
                 $product = \App\Models\Product::lockForUpdate()->find($item['product_id']);
-                
+
                 if ($product->stock < $item['quantity']) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
                         "items" => ["Out of stock for product: {$product->name}"]

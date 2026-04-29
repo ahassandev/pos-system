@@ -53,6 +53,7 @@
     </div>
 
     <ReceiptModal
+      v-show="showReceipt"
       :show="showReceipt"
       :order="receiptOrder"
       @close="showReceipt = false"
@@ -69,24 +70,36 @@ const orders = ref([]);
 const selectedOrder = ref(null);
 const showReceipt = ref(false);
 const receiptOrder = ref({});
+const printLoading = ref(null);
 
 const fetchData = async () => {
   const response = await axios.get('/api/orders');
   orders.value = response.data;
 };
 
-const viewOrder = async (order) => {
-  const response = await axios.get(`/api/orders/${order.id}`);
-  selectedOrder.value = response.data;
+const viewOrder = (order) => {
+  selectedOrder.value = { ...order };
 };
 
-const printOrder = async (order) => {
-  const response = await axios.get(`/api/orders/${order.id}`);
-  receiptOrder.value = response.data;
+const printOrder = (order) => {
+  console.log('Print clicked for order:', order.id);
+  receiptOrder.value = order;
   showReceipt.value = true;
+  
+  // Background fetch for items if they are missing
+  if (!order.items || order.items.length === 0) {
+    axios.get(`/api/orders/${order.id}`).then(res => {
+      receiptOrder.value = res.data;
+    }).catch(err => {
+      console.error('Fetch error:', err);
+    });
+  }
 };
 
-onMounted(fetchData);
+onMounted(() => {
+  console.log('OrderList Mounted (v2.0)');
+  fetchData();
+});
 </script>
 
 <style scoped>

@@ -2,6 +2,9 @@
   <div class="orders-view">
     <div class="header-actions">
       <h1>Order History</h1>
+      <div v-if="appliedStartDate || appliedEndDate" class="total-sales-badge">
+        Total Sales: <strong>${{ totalSalesAmount.toFixed(2) }}</strong>
+      </div>
     </div>
 
     <div class="filters-section">
@@ -108,6 +111,12 @@ const applyDateFilter = () => {
   appliedEndDate.value = endDate.value;
 };
 
+const totalSalesAmount = computed(() => {
+  return filteredOrders.value.reduce((sum, order) => {
+    return sum + (Number(order.total) || 0);
+  }, 0);
+});
+
 const filteredOrders = computed(() => {
   return orders.value.filter(o => {
     const matchInv = !searchInvoice.value || o.invoice_number.toLowerCase().includes(searchInvoice.value.toLowerCase());
@@ -162,7 +171,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.header-actions { margin-bottom: 1rem; }
+.header-actions { margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+.total-sales-badge { background: #e0e7ff; color: #3730a3; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1.1rem; border: 1px solid #c7d2fe; }
 .filters-section { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem; }
 .filters-title { margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: #444; }
 .filters { display: flex; gap: 1.5rem; align-items: flex-end; }
